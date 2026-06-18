@@ -22,6 +22,23 @@ jobs:
         with:
           node-version: 20
 
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-size: 20
+
+      - name: Debug - List files in runner
+        run: |
+          echo "=== CURRENT WORKING DIRECTORY ==="
+          pwd
+          echo "=== FILES AT ROOT ==="
+          ls -la
+          echo "=== CHECKING IF APP FOLDER IS HERE ==="
+          ls -la app || echo "App folder does not exist!"
+
       - name: Install dependencies
         working-directory: ${{ github.workspace }}/app
         run: npm ci
