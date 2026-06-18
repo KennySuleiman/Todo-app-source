@@ -8,11 +8,7 @@ on:
 jobs:
   build-test-push:
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: app
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -22,33 +18,18 @@ jobs:
         with:
           node-version: 20
 
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-size: 20
-
-      - name: Debug - List files in runner
-        run: |
-          echo "=== CURRENT WORKING DIRECTORY ==="
-          pwd
-          echo "=== FILES AT ROOT ==="
-          ls -la
-          echo "=== CHECKING IF APP FOLDER IS HERE ==="
-          ls -la app || echo "App folder does not exist!"
-
       - name: Install dependencies
-        working-directory: ${{ github.workspace }}/app
+        working-directory: ./app
         run: npm ci
 
       # Uncomment once linting is configured
       # - name: Run lint
+      #   working-directory: ./app
       #   run: npm run lint
 
       # Uncomment once tests are configured
       # - name: Run tests
+      #   working-directory: ./app
       #   run: npm test
 
       - name: Generate version tag
@@ -69,5 +50,5 @@ jobs:
           file: ./app/Dockerfile
           push: true
           tags: |
-            Kennysul/todo-app-source-app:${{ steps.version.outputs.TAG }}
+            kennysul/todo-app-source-app:${{ steps.version.outputs.TAG }}
             kennysul/todo-app-source-app:latest
