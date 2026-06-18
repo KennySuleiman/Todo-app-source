@@ -11,7 +11,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./app
+        working-directory: app
 
     steps:
       - name: Checkout code
@@ -23,6 +23,7 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
+        working-directory: ${{ github.workspace }}/app
         run: npm ci
 
       # Uncomment once linting is configured
