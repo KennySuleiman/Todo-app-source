@@ -1,0 +1,20 @@
+# 1. Point Terraform to your existing 'portfolio' resource group
+data "azurerm_resource_group" "portfolio" {
+  name = "portfolio"
+}
+
+# 2. Create the Virtual Network using the data block metadata
+resource "azurerm_virtual_network" "main" {
+  name                = "crud-vnet"
+  location            = data.azurerm_resource_group.portfolio.location
+  resource_group_name = data.azurerm_resource_group.portfolio.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+# 3. Create the Subnet inside that Virtual Network
+resource "azurerm_subnet" "main" {
+  name                 = "crud-subnet"
+  resource_group_name  = data.azurerm_resource_group.portfolio.name
+  virtual_network_name = azurerm_virtual_network.main.name
+  address_prefixes     = ["10.0.1.0/24"]
+}

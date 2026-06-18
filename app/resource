@@ -1,0 +1,4 @@
+resource "Portfolio " "main" {
+  name     = "crud-rg"
+  location = "EASTUS"
+}

@@ -1,0 +1,16 @@
+todo-app-source/
+│
+├── app/                  # Phase 1: actual application
+│   ├── Dockerfile
+│   ├── package.json
+│   ├── src/
+│
+├── docker-compose.yml    # local dev (app + db)
+│
+├── infra/                # Phase 2: Terraform
+│   ├── eks/
+│   ├── vpc/
+│
+├── k8s-manifests/       # Phase 4: GitOps
+│
+└── .github/workflows/   # Phase 3: CI/CD
