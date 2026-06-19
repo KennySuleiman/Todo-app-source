@@ -9,7 +9,6 @@ The application logic is intentionally minimal — the goal of this project was 
 
 [![CI](https://github.com/YOUR_USERNAME/cloud-native-todo-app/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/cloud-native-todo-app/actions)
 [![Last commit](https://img.shields.io/github/last-commit/YOUR_USERNAME/cloud-native-todo-app)](https://github.com/YOUR_USERNAME/cloud-native-todo-app/commits/main)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ## Architecture
 
@@ -43,7 +42,7 @@ flowchart LR
 ```
 cloud-native-todo-app/
 ├── app/                     # Todo CRUD app + Dockerfile
-├── infra/                   # Terraform: VPC, EKS cluster
+├── infra/                  # Terraform: VPC, EKS cluster
 │   ├── main.tf
 │   ├── vpc.tf
 │   └── eks.tf
@@ -54,7 +53,7 @@ cloud-native-todo-app/
 └── README.md
 ```
 
-Kubernetes manifests (Deployments, Services, Ingress) live in a separate repo — [`cloud-native-todo-app-manifests`](https://github.com/YOUR_USERNAME/cloud-native-todo-app-manifests) — which is the repo ArgoCD watches. Keeping app code and cluster state in separate repos is intentional; it's the core principle of GitOps.
+Kubernetes manifests (Deployments, Services, Ingress) live in a separate repo — [`Todo-app-gitops`](https://github.com/YOUR_USERNAME/cloud-native-todo-app-manifests) — which is the repo ArgoCD watches. Keeping app code and cluster state in separate repos is intentional; it's the core principle of GitOps.
 
 ## Running it locally
 
@@ -120,6 +119,6 @@ Grafana dashboards track CPU, memory, and HTTP success rate. Alertmanager is con
 
 Docker · Terraform · AWS EKS · GitHub Actions · ArgoCD · Prometheus · Grafana · Helm · PostgreSQL
 
-## License
 
-MIT — see [LICENSE](LICENSE) for details.
+
+
