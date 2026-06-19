@@ -7,8 +7,8 @@ A deliberately simple CRUD app, deployed the way production systems actually shi
 
 The application logic is intentionally minimal — the goal of this project was to practice infrastructure and delivery, not application code.
 
-[![CI](https://github.com/YOUR_USERNAME/cloud-native-todo-app/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/cloud-native-todo-app/actions)
-[![Last commit](https://img.shields.io/github/last-commit/YOUR_USERNAME/cloud-native-todo-app)](https://github.com/YOUR_USERNAME/cloud-native-todo-app/commits/main)
+[![CI](https://github.com/YOUR_USERNAME/Todo-app-source/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/cloud-native-todo-app/actions)
+[![Last commit](https://img.shields.io/github/last-commit/YOUR_USERNAME/Todo-app-source)](https://github.com/YOUR_USERNAME/cloud-native-todo-app/commits/main)
 
 ## Architecture
 
@@ -53,12 +53,12 @@ cloud-native-todo-app/
 └── README.md
 ```
 
-Kubernetes manifests (Deployments, Services, Ingress) live in a separate repo — [`Todo-app-gitops`](https://github.com/YOUR_USERNAME/cloud-native-todo-app-manifests) — which is the repo ArgoCD watches. Keeping app code and cluster state in separate repos is intentional; it's the core principle of GitOps.
+Kubernetes manifests (Deployments, Services, Ingress) live in a separate repo — [`Todo-app-gitops`](https://github.com/YOUR_USERNAME/Todo-app-gitops) — which is the repo ArgoCD watches. Keeping app code and cluster state in separate repos is intentional; it's the core principle of GitOps.
 
 ## Running it locally
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/cloud-native-todo-app.git
+git clone https://github.com/YOUR_USERNAME/Todo-app.source.git
 cd cloud-native-todo-app
 docker compose up --build
 ```
