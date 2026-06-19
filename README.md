@@ -58,8 +58,8 @@ Kubernetes manifests (Deployments, Services, Ingress) live in a separate repo â€
 ## Running it locally
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/Todo-app.source.git
-cd cloud-native-todo-app
+git clone https://github.com/YOUR_USERNAME/Todo-app-source
+cd Todo-app-source
 docker compose up --build
 ```
 
