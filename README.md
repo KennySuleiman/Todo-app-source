@@ -320,6 +320,69 @@ It automatically builds and pushes the application image to Docker Hub.
 The Azure Kubernetes infrastructure is provisioned separately with Terraform.
 
 Automated deployment of each newly built container image from GitHub Actions into AKS is a logical next stage of the project and is not represented here as already implemented.
+## Kubernetes Validation with Minikube
+
+The Kubernetes deployment was validated locally using Minikube before any live AKS deployment.
+
+The application was deployed using:
+
+```bash
+kubectl apply -f kubernetes/deployment.yaml
+kubectl apply -f kubernetes/service.yaml
+```
+
+The Kubernetes configuration includes:
+
+* Two application replicas
+* A `ClusterIP` service
+* Container port `3000`
+* HTTP readiness probe
+* HTTP liveness probe
+* Docker image pulled from Docker Hub
+
+The running application was exposed locally using port forwarding:
+
+```bash
+kubectl port-forward service/todo-api-service 8080:80
+```
+
+The API health endpoint returned:
+
+```text
+Todo API is running 🚀
+```
+
+A todo item was successfully created using:
+
+```bash
+curl -X POST http://localhost:8080/todos \
+  -H "Content-Type: application/json" \
+  -d '{"task":"Deploy application to Kubernetes"}'
+```
+
+and retrieved through:
+
+```bash
+curl http://localhost:8080/todos
+```
+
+This validated the complete local application flow:
+
+```text
+Docker Hub
+    ↓
+Kubernetes Deployment
+    ↓
+Two Application Pods
+    ↓
+ClusterIP Service
+    ↓
+Port Forward
+    ↓
+REST API
+```
+
+Minikube was used intentionally to validate the Kubernetes workload locally without maintaining billable Azure AKS resources.
 
 ## Future Improvements
 
