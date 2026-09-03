@@ -1,124 +1,365 @@
-# Todo-app-source
-Deploying a cloud native software app
+# Azure Kubernetes Todo API
 
-# Cloud-Native Todo App
+A cloud-native DevOps project demonstrating how a containerised Node.js application can be packaged with Docker, integrated with a CI pipeline, and supported by Azure Kubernetes Service infrastructure provisioned using Terraform.
 
-A deliberately simple CRUD app, deployed the way production systems actually ship: containerized, provisioned with Terraform on AWS EKS, deployed via GitOps with ArgoCD, and monitored with Prometheus and Grafana.
-
-The application logic is intentionally minimal — the goal of this project was to practice infrastructure and delivery, not application code.
-
-[![CI](https://github.com/YOUR_USERNAME/Todo-app-source/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/cloud-native-todo-app/actions)
-[![Last commit](https://img.shields.io/github/last-commit/YOUR_USERNAME/Todo-app-source)](https://github.com/YOUR_USERNAME/cloud-native-todo-app/commits/main)
+The application itself is intentionally lightweight. The main focus of the project is the infrastructure, containerisation and automated delivery workflow.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    Dev[Developer] -->|git push| GH[GitHub repo]
-    GH --> CI[GitHub Actions<br/>lint, test, build]
-    CI -->|semver-tagged image| Reg[Image registry]
-    Reg -.->|image ref| Manifests[Manifests repo]
-    Manifests -->|detects change| Argo[ArgoCD]
-    Argo -->|sync| EKS[AWS EKS cluster]
-    EKS --> App[Todo app + Postgres]
-    EKS --> Mon[Prometheus + Grafana]
-    Mon -->|alert| Slack[Slack]
+    Dev[Developer] -->|git push| GH[GitHub]
+    GH --> GHA[GitHub Actions]
+    GHA --> Build[Build Docker Image]
+    Build --> DH[Docker Hub]
+
+    TF[Terraform] --> VNET[Azure Virtual Network]
+    VNET --> SUBNET[Azure Subnet]
+    TF --> AKS[Azure Kubernetes Service]
+
+    DH -.->|Container Image| AKS
 ```
 
-**Flow:** push to `main` → CI lints, tests, builds, and pushes a versioned image → the image tag is updated in a separate manifests repo → ArgoCD detects the change and syncs the cluster → Prometheus/Grafana monitor the result and alert on failure.
+The project is divided into two main workflows:
 
-## What this covers
+**Infrastructure workflow**
 
-| Area | Tooling | Outcome |
-|---|---|---|
-| Containerization | Docker, docker-compose | Multi-stage build, app + Postgres run locally with one command |
-| Infrastructure as Code | Terraform | VPC, public/private subnets, and EKS cluster — zero manual console steps |
-| CI | GitHub Actions | Lint → test → build → push, tagged with semantic versioning (not `latest`) |
-| GitOps delivery | ArgoCD | Cluster state is driven entirely from Git; deploying is a `git push`, not a manual `kubectl apply` |
-| Observability | Prometheus, Grafana, Helm | Live dashboards for CPU, memory, request success rate; Slack alert on downtime |
+Terraform provisions the Azure networking and Kubernetes infrastructure, including:
 
-## Repo structure
+* Azure Virtual Network
+* Dedicated subnet
+* Azure Kubernetes Service cluster
+* AKS managed identity
+* Kubernetes worker node pool
 
-```
-cloud-native-todo-app/
-├── app/                     # Todo CRUD app + Dockerfile
-├── infra/                  # Terraform: VPC, EKS cluster
-│   ├── main.tf
-│   ├── vpc.tf
-│   └── eks.tf
-├── .github/workflows/       # CI pipeline definition
-│   └── ci.yml
-├── docs/                    # Architecture diagram, screenshots
+**Application delivery workflow**
+
+Code pushed to the `main` branch triggers GitHub Actions, which:
+
+1. Checks out the application source.
+2. Configures Node.js 20.
+3. Installs application dependencies.
+4. Generates a versioned Docker image tag.
+5. Authenticates with Docker Hub.
+6. Builds the application container.
+7. Pushes both versioned and `latest` images to Docker Hub.
+
+## Technology Stack
+
+| Area                    | Technology                     |
+| ----------------------- | ------------------------------ |
+| Cloud Platform          | Microsoft Azure                |
+| Container Orchestration | Azure Kubernetes Service (AKS) |
+| Infrastructure as Code  | Terraform                      |
+| Containerisation        | Docker                         |
+| CI                      | GitHub Actions                 |
+| Container Registry      | Docker Hub                     |
+| Application             | Node.js, Express               |
+| Local Development       | Docker Compose                 |
+| Networking              | Azure Virtual Network, Subnet  |
+| Source Control          | Git, GitHub                    |
+
+## Project Structure
+
+```text
+Todo-app-source/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       └── main.yml
+│
+├── app/
+│   ├── Dockerfile
+│   ├── index.js
+│   ├── package.json
+│   └── package-lock.json
+│
+├── Terraform/
+│   ├── aks.tf
+│   ├── network.tf
+│   ├── provider.tf
+│   └── .terraform.lock.hcl
+│
 ├── docker-compose.yml
+├── .dockerignore
+├── .gitignore
 └── README.md
 ```
 
-Kubernetes manifests (Deployments, Services, Ingress) live in a separate repo — [`Todo-app-gitops`](https://github.com/YOUR_USERNAME/Todo-app-gitops) — which is the repo ArgoCD watches. Keeping app code and cluster state in separate repos is intentional; it's the core principle of GitOps.
+## Application
 
-## Running it locally
+The application is a simple REST API built with Node.js and Express.
+
+It exposes the following endpoints:
+
+| Method | Endpoint     | Purpose                  |
+| ------ | ------------ | ------------------------ |
+| GET    | `/`          | Application health check |
+| GET    | `/todos`     | Retrieve all todo items  |
+| POST   | `/todos`     | Create a todo item       |
+| PUT    | `/todos/:id` | Update a todo item       |
+| DELETE | `/todos/:id` | Delete a todo item       |
+
+Example health check:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/Todo-app-source
+curl http://localhost:3000/
+```
+
+Expected response:
+
+```text
+Todo API is running 🚀
+```
+
+## Running the Application Locally
+
+Clone the repository:
+
+```bash
+git clone https://github.com/KennySuleiman/Todo-app-source.git
 cd Todo-app-source
+```
+
+Start the environment:
+
+```bash
 docker compose up --build
 ```
 
-The app will be available at `http://localhost:3000`.
+The API is then available at:
 
-## Provisioning the cloud infrastructure
+```text
+http://localhost:3000
+```
+
+## Docker
+
+The application uses a lightweight Node.js 20 Alpine base image.
+
+The container build:
+
+* Sets `/app` as the working directory.
+* Copies the package manifests.
+* Installs production dependencies.
+* Copies the application source.
+* Exposes port `3000`.
+* Starts the Express API using Node.js.
+
+Build the image manually with:
 
 ```bash
-cd infra
+docker build -t todo-api ./app
+```
+
+Run it with:
+
+```bash
+docker run -p 3000:3000 todo-api
+```
+
+## Infrastructure as Code
+
+Terraform is used to define the Azure infrastructure.
+
+Move into the Terraform directory:
+
+```bash
+cd Terraform
+```
+
+Initialise Terraform:
+
+```bash
 terraform init
+```
+
+Review the proposed infrastructure:
+
+```bash
 terraform plan
+```
+
+Provision the infrastructure:
+
+```bash
 terraform apply
 ```
 
-This provisions a VPC with public/private subnets and an AWS EKS cluster. Connect `kubectl` to it with:
+### Azure Networking
 
-```bash
-aws eks update-kubeconfig --name todo-cluster --region us-east-1
+Terraform creates a virtual network named:
+
+```text
+crud-vnet
 ```
 
-## Deploying
+with address space:
 
-Deployment happens through ArgoCD, not manually. Install ArgoCD into the cluster:
-
-```bash
-kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+```text
+10.0.0.0/16
 ```
 
-Point an ArgoCD `Application` at the manifests repo and enable auto-sync. From that point on, updating the image tag in the manifests repo is the only step needed to ship a new version.
+A dedicated subnet named:
 
-## Monitoring
-
-The kube-prometheus-stack is installed via Helm:
-
-```bash
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm install monitoring prometheus-community/kube-prometheus-stack \
-  --namespace monitoring --create-namespace
+```text
+crud-subnet
 ```
 
-Grafana dashboards track CPU, memory, and HTTP success rate. Alertmanager is configured to post to Slack if the app's `up` metric drops to zero.
+uses:
 
-## Screenshots
+```text
+10.0.1.0/24
+```
 
-| Grafana dashboard | ArgoCD sync view |
-|---|---|
-| ![Grafana dashboard](docs/grafana-dashboard.png) | ![ArgoCD sync](docs/argocd-sync.png) |
+### Azure Kubernetes Service
 
-## What I'd improve next
+Terraform provisions an AKS cluster named:
 
-- Promote images across environments (dev → staging → prod) using ArgoCD ApplicationSets instead of a single manifests branch
-- Add a service mesh (Istio or Linkerd) for traffic shaping and mutual TLS
-- Move secrets out of plain Kubernetes Secrets and into Sealed Secrets or Vault
+```text
+crud-aks
+```
 
-## Tech stack
+in:
 
-Docker · Terraform · AWS EKS · GitHub Actions · ArgoCD · Prometheus · Grafana · Helm · PostgreSQL
+```text
+East US
+```
 
+The cluster uses:
 
+* A single default node.
+* `Standard_D2s_v7` VM size.
+* System-assigned managed identity.
+* Azure Kubernetes Service for container orchestration.
 
+## CI Pipeline
+
+The GitHub Actions workflow runs whenever code is pushed to the `main` branch.
+
+The pipeline performs the following workflow:
+
+```text
+Git Push
+   ↓
+GitHub Actions
+   ↓
+Checkout Source
+   ↓
+Configure Node.js
+   ↓
+npm ci
+   ↓
+Generate Version Tag
+   ↓
+Docker Build
+   ↓
+Docker Hub Authentication
+   ↓
+Push Container Image
+```
+
+Container images are published to:
+
+```text
+kennysul/todo-app-source-app
+```
+
+The pipeline generates version tags using the deployment date and shortened Git commit SHA.
+
+Example:
+
+```text
+v2026.09.03-a1b2c3d
+```
+
+It also publishes:
+
+```text
+latest
+```
+
+This provides both an immutable version reference and a convenient latest image.
+
+## Security Practices
+
+The project avoids storing Docker Hub credentials directly in the repository.
+
+GitHub Actions retrieves authentication details from GitHub repository secrets:
+
+```text
+DOCKER_USERNAME
+DOCKER_PASSWORD
+```
+
+Environment files and Terraform state are excluded from version control using `.gitignore`.
+
+Terraform state should be treated as sensitive because it can contain infrastructure configuration and potentially sensitive resource information.
+
+## Repository Hygiene
+
+The following files are intentionally excluded from Git:
+
+```text
+.env
+.env.*
+*.tfstate
+*.tfstate.*
+.terraform/
+node_modules/
+```
+
+This helps prevent local configuration, secrets and Terraform state from being committed to the repository.
+
+## Current Project Scope
+
+The current GitHub Actions workflow provides **continuous integration and container publishing**.
+
+It automatically builds and pushes the application image to Docker Hub.
+
+The Azure Kubernetes infrastructure is provisioned separately with Terraform.
+
+Automated deployment of each newly built container image from GitHub Actions into AKS is a logical next stage of the project and is not represented here as already implemented.
+
+## Future Improvements
+
+The project can be extended by:
+
+* Adding Kubernetes Deployment and Service manifests.
+* Automatically deploying versioned images to AKS.
+* Adding automated application tests to the CI pipeline.
+* Adding linting and code-quality checks.
+* Connecting the API to PostgreSQL for persistent storage.
+* Moving Terraform state to a secure Azure Storage backend.
+* Adding Kubernetes health probes.
+* Implementing application monitoring with Prometheus and Grafana.
+* Adding HTTPS and ingress routing.
+* Using GitHub OIDC for passwordless Azure authentication.
+* Introducing GitOps using Argo CD once Kubernetes deployment manifests are established.
+
+## Key DevOps Skills Demonstrated
+
+This project demonstrates practical experience with:
+
+* Azure cloud infrastructure
+* Azure Kubernetes Service
+* Infrastructure as Code
+* Terraform
+* Docker containerisation
+* GitHub Actions
+* CI pipeline design
+* Docker image versioning
+* Container registry integration
+* Azure networking
+* Linux-based containers
+* Git and GitHub
+* REST API deployment concepts
+
+## Author
+
+**Kehinde Suleiman**
+
+Cloud & DevOps Engineer
+
+[GitHub](https://github.com/KennySuleiman)
 
